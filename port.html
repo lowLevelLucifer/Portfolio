@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player 1: Portfolio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Deep Discord-like gradient colors */
+            --grad-1: #00faf2; /* Cyan/Teal */
+            --grad-2: #3fcaca; /* Soft Blue */
+            --grad-3: #e205ff; /* Neon Purple */
+            --grad-4: #0a0a0a; /* Almost Black */
+            
+            --card-bg: rgba(17, 17, 17, 0.85); /* Slightly transparent cards */
+            --accent-yellow: #fee75c; 
+            --accent-pink: #eb459e;   
+            --accent-teal: #57F287;   
+            --accent-blurple: #5865F2;
+            --text-white: #ffffff;
+            --text-gray: #b9bbbe;
+        }
+
+        /* --- ENABLE FLUID SCROLLING --- */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            color: var(--text-white);
+            /* CHANGED: Applied Space Mono (Monospace) globally */
+            font-family: 'Space Mono', monospace; 
+            overflow-x: hidden;
+            /* THE ANIMATED GRADIENT BACKGROUND */
+            background: linear-gradient(-45deg, var(--grad-1), var(--grad-2), var(--grad-4), var(--grad-3));
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* The shifting animation */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Halftone Dot Overlay Texture */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* Subtle dots */
+            background-image: radial-gradient(rgba(0,0,0,0.3) 15%, transparent 16%);
+            background-size: 20px 20px;
+            pointer-events: none; /* ensures clicks go through to the content */
+            z-index: 0;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3 {
+            /* CHANGED: Switched from Pixel font to Monospace */
+            font-family: 'Space Mono', monospace;
+            font-weight: 700; /* Bold for headers */
+            text-transform: uppercase;
+            line-height: 1.4;
+            letter-spacing: -1px; /* Tighter coding style tracking */
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1; /* Ensures content sits above the background overlay */
+        }
+
+        section {
+            /* Increased margin for better scrolling feel */
+            margin-bottom: 10rem;
+            padding-top: 2rem; /* Offset for fixed header if you add one later */
+        }
+
+        /* --- NAV --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            margin-bottom: 5rem;
+        }
+
+        .nav-logo {
+            /* CHANGED: Monospace */
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--accent-yellow);
+            font-size: 1.4rem;
+            letter-spacing: -1px;
+        }
+
+        .nav-links a {
+            color: var(--text-white);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-size: 0.9rem;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+
+        .nav-links a:hover { 
+            color: var(--accent-pink);
+            text-shadow: 0 0 10px var(--accent-pink);
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            text-align: center;
+            padding: 5rem 0;
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem; /* Made slightly larger since monospace is thinner than pixel font */
+            margin-bottom: 1rem;
+            text-shadow: 4px 4px 0px var(--accent-blurple);
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto 2rem auto;
+            line-height: 1.6;
+        }
+
+        /* --- STATS GRID --- */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+        
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 4px 4px 0px white;
+            /* CHANGED: Monospace */
+            font-family: 'Space Mono', monospace;
+            font-size: 1.2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s, border-color 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-pink);
+        }
+
+        .stat-number {
+            /* CHANGED: Monospace */
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 3rem;
+            color: var(--accent-pink);
+            margin-bottom: 1rem;
+            display: block;
+            letter-spacing: -2px;
+        }
+
+        .stat-label {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* --- PROJECTS (QUESTS) --- */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+        }
+
+        .project-card {
+            background: var(--card-bg);
+            border: 2px solid rgba(255,255,255,0.1);
+            position: relative;
+            height: 100%;
+            transition: transform 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        
+        .project-card:hover {
+             transform: scale(1.02);
+             border-color: var(--accent-yellow);
+        }
+
+        .project-rank {
+            position: absolute;
+            top: -15px;
+            left: -10px;
+            background: var(--accent-yellow);
+            color: black;
+            /* CHANGED: Monospace */
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            z-index: 2;
+            box-shadow: 4px 4px 0px rgba(255,255,255,0.8);
+        }
+
+        .project-image {
+            width: 100%;
+            height: 180px;
+            background-color: rgba(0,0,0,0.5);
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            /* CHANGED: Monospace */
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        
+        /* Optional: Add actual images here */
+        .project-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .project-content {
+            padding: 2rem;
+        }
+
+        .project-title {
+            color: var(--accent-yellow);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .tech-stack {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .tech-tag {
+            background: rgba(255,255,255,0.1);
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .project-links {
+            margin-top: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background: transparent;
+            border: 2px solid var(--text-white);
+            color: var(--text-white);
+            padding: 0.8rem 1.5rem;
+            text-decoration: none;
+            /* CHANGED: Monospace */
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+            box-shadow: 3px 3px 0px rgba(255,255,255,0.5);
+        }
+
+        .btn:hover {
+            background: var(--text-white);
+            color: var(--grad-4);
+            box-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+            transform: translate(2px, 2px);
+        }
+
+        /* --- EXPERIENCE (LORE) --- */
+        .list-item {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s;
+        }
+        
+        .list-item:hover {
+             transform: translateX(10px);
+        }
+
+        .list-item:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: var(--accent-teal);
+        }
+
+        .list-info h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .list-date {
+            color: var(--accent-teal);
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 5rem 0;
+            border-top: 2px solid rgba(255,255,255,0.1);
+            margin-top: 5rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .social-icon {
+            /* CHANGED: Monospace */
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: color 0.3s, transform 0.3s;
+        }
+        
+        .social-icon:hover { 
+            color: var(--accent-yellow);
+            transform: scale(1.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.2rem; }
+            .nav-links { display: none; } 
+            .list-item { flex-direction: column; align-items: flex-start; gap: 1rem;}
+            section { margin-bottom: 6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <nav>
+            <div class="nav-logo">
+                <span style="color:white;">User</span><span style="color:var(--accent-pink);">.check()</span>
+            </div>
+            <div class="nav-links">
+                <a href="#stats">STATS</a>
+                <a href="#quests">QUESTS</a>
+                <a href="#lore">LORE</a>
+                <a href="#contact">CO-OP</a>
+            </div>
+        </nav>
+
+        <header class="hero">
+            <p>I'AM MID BUT I PREFER BEING LOW LEVEL</p>
+            <h1>UTHKARSH M</h1>
+            <p>Computer Science Student | Embedded Engineering | Problem Solver</p>
+            <br>
+            <a href="#quests" class="btn" style="background: var(--accent-blurple); border-color: var(--accent-blurple);">START GAME</a>
+        </header>
+
+        <section id="stats">
+            <div class="section-header">
+                <div class="icon-box">!</div>
+                <h2>YOUR STATS</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number">90%</span>
+                    <span class="stat-label">C++</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-number" style="color:var(--accent-yellow)">1</span>
+                    <span class="stat-label">REPOS PUSHED</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-number" style="color:var(--accent-teal)">32</span>
+                    <span class="stat-label">PROBLEMS SOLVED</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-number" style="color:var(--accent-blurple)">D+</span>
+                    <span class="stat-label">DSA ONGOING</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="quests">
+            <div class="section-header">
+                <div class="icon-box" style="background: var(--accent-yellow); color:black;">#</div>
+                <h2>YOUR TOP QUESTS</h2>
+            </div>
+
+            <p style="margin-bottom: 3rem; color: var(--text-gray); font-size: 1.1rem;">You completed 3 major milestones this year. These were your favorites:</p>
+
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-rank">#1</div>
+                    <div class="project-image">
+                        [IMG_PREVIEW]
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">CLOCK-SYSTEM</h3>
+                        <p>A timer/interrupt based clock, handling multiple events and states</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">C++</span>
+                            <span class="tech-tag">Timers</span>
+                            <span class="tech-tag">ISR/IRQ</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="btn">VIEW REPO</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-rank">#2</div>
+                    <div class="project-image">[IMG_PREVIEW]</div>
+                    <div class="project-content">
+                        <h3 class="project-title">E-Commerce App</h3>
+                        <p>Full stack MERN application with secure payment integration and user dashboard.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">React</span>
+                            <span class="tech-tag">NodeJS</span>
+                            <span class="tech-tag">MongoDB</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="btn">LIVE DEMO</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-rank">#3</div>
+                    <div class="project-image">[IMG_PREVIEW]</div>
+                    <div class="project-content">
+                        <h3 class="project-title">Algorithm Visualizer</h3>
+                        <p>Interactive web app to visualize sorting and pathfinding algorithms in real-time.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">JavaScript</span>
+                            <span class="tech-tag">HTML5/Canvas</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="btn">VIEW CODE</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lore">
+            <div class="section-header">
+                <div class="icon-box" style="background: var(--accent-teal); color:black;">@</div>
+                <h2>YOUR LORE</h2>
+            </div>
+            
+            <p style="margin-bottom: 3rem; color: var(--text-gray); font-size: 1.1rem;">The realms where you spent the most time:</p>
+
+            <div class="list-item">
+                <div class="list-info">
+                    <h3>DAYANDASAGAR ACADEMY OF TECHNOLOGY AND MANAGEMENT</h3>
+                    <p style="color:var(--text-gray);">Bachelor of Technology in CSE</p>
+                    <p style="margin-top:0.5rem">Relevant Coursework: OS, DBMS, Networks.</p>
+                </div>
+                <div class="list-right">
+                    <span style="font-family:'Space Mono', monospace; font-weight:700; margin-right: 1rem; font-size: 0.9rem;">CGPA: 8.1</span>
+                    <span class="list-date">2023 - 2027</span>
+                </div>
+            </div>
+
+            <div class="list-item" style="border-left: 5px solid var(--accent-pink);">
+                <style>.list-item[style*="pink"]:before { display:none; }</style> 
+                <div class="list-info">
+                    <h3>TECH COMPANY INC.</h3>
+                    <p style="color:var(--text-gray);">Software Development Intern</p>
+                     <p style="margin-top:0.5rem">Developed REST APIs and optimized database queries, improving load times by 20%.</p>
+                </div>
+                <div class="list-right">
+                    <span class="list-date">Summer 2024</span>
+                </div>
+            </div>
+
+        </section>
+
+        <footer id="contact">
+            <h2 style="margin-bottom: 3rem; font-size: 1.8rem;">READY TO SQUAD UP?</h2>
+            
+            <div class="social-links">
+                <a href="#" class="social-icon">GITHUB</a>
+                <a href="#" class="social-icon">LINKEDIN</a>
+                <a href="#" class="social-icon">EMAIL</a>
+            </div>
+
+            <p style="font-size: 0.9rem; color: #000000; line-height: 2;">
+                GAME OVER.<br>
+                INSERT COIN TO CONTINUE.
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
