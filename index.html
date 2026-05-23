@@ -1,613 +1,1659 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player 1: Portfolio</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTHKARSH_M :: LOW_LEVEL_DEV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --amber: #A981FF;
+  --amber-dim: #7a55cc;
+  --amber-bright: #c9a8ff;
+  --amber-glow: rgba(169,129,255,0.15);
+  --amber-glow2: rgba(169,129,255,0.06);
+  --bg: #0E0E0E;
+  --bg2: #111111;
+  --green: #e8e8e8;
+  --red: #ff4f4f;
+  --cyan: #c9a8ff;
+  --white: #f5f5f5;
+  --gray: #888888;
+  --border: rgba(169,129,255,0.25);
+  --scanline: rgba(0,0,0,0.35);
+  --crt-curve: 0.02;
+}
 
-    <style>
-        :root {
-            /* Deep Discord-like gradient colors */
-            --grad-1: #000000; /* Cyan/Teal */
-            --grad-2: #0068d0; /* Soft Blue */
-            --grad-3: #7207d5; /* Neon Purple */
-            --grad-4: #0a0a0a; /* Almost Black */
-            
-            --card-bg: rgba(17, 17, 17, 0.85); /* Slightly transparent cards */
-            --accent-yellow: #fee75c; 
-            --accent-pink: #eb459e;   
-            --accent-teal: #57F287;   
-            --accent-blurple: #5865F2;
-            --text-white: #ffffff;
-            --text-gray: #b9bbbe;
-        }
+* { margin:0; padding:0; box-sizing:border-box; }
 
-        /* --- ENABLE FLUID SCROLLING --- */
-        html {
-            scroll-behavior: smooth;
-        }
+html, body {
+  width:100%; height:100%;
+  background: var(--bg);
+  color: var(--amber);
+  font-family: 'IBM Plex Mono', 'Share Tech Mono', monospace;
+  overflow: hidden;
+  cursor: none;
+}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+/* Custom cursor */
+#cursor {
+  position: fixed;
+  width: 14px; height: 14px;
+  border: 2px solid var(--amber);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%,-50%);
+  transition: width 0.1s, height 0.1s, border-color 0.1s;
+  mix-blend-mode: screen;
+}
+#cursor::after {
+  content:'';
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:3px; height:3px;
+  background:var(--amber-bright);
+  border-radius:50%;
+}
+#cursor.clicking { width:8px; height:8px; border-color:var(--amber-bright); }
 
-        body {
-            color: var(--text-white);
-            font-family: 'Space Mono', monospace; 
-            overflow-x: hidden;
-            background: linear-gradient(-45deg, var(--grad-1), var(--grad-2), var(--grad-4), var(--grad-3));
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            min-height: 100vh;
-            position: relative;
-        }
+/* CRT Overlay */
+#crt {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9000;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      var(--scanline) 0px,
+      var(--scanline) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  animation: scanroll 10s linear infinite;
+}
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+@keyframes scanroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 300px; }
+}
 
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: radial-gradient(rgba(0,0,0,0.3) 15%, transparent 16%);
-            background-size: 20px 20px;
-            pointer-events: none; 
-            z-index: 0;
-        }
+/* Vignette */
+#vignette {
+  position:fixed; inset:0;
+  pointer-events:none;
+  z-index:8999;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.85) 100%);
+}
 
-        h1, h2, h3 {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700; 
-            text-transform: uppercase;
-            line-height: 1.4;
-            letter-spacing: -1px; 
-        }
+/* Phosphor glow layer */
+#phosphor {
+  position:fixed; inset:0;
+  pointer-events:none;
+  z-index:8998;
+  background: radial-gradient(ellipse at center, rgba(169,129,255,0.04) 0%, transparent 70%);
+}
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            position: relative;
-            z-index: 1; 
-        }
+/* Noise texture */
+#noise {
+  position:fixed; inset:0;
+  pointer-events:none;
+  z-index:8997;
+  opacity:0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px;
+}
 
-        section {
-            margin-bottom: 10rem;
-            padding-top: 2rem; 
-        }
+#boot-screen {
+  position:fixed; inset:0;
+  z-index:5000;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:2rem;
+}
 
-        /* --- NAV --- */
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 2rem 0;
-            border-bottom: 2px solid rgba(255,255,255,0.1);
-            margin-bottom: 5rem;
-        }
+#boot-content {
+  width:100%;
+  max-width:800px;
+  font-size:0.8rem;
+  line-height:1.7;
+  color:var(--amber);
+}
 
-        .nav-logo {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            color: var(--accent-yellow);
-            font-size: 1.4rem;
-            letter-spacing: -1px;
-        }
+.boot-line {
+  opacity:0;
+  white-space:pre;
+}
+.boot-line.visible { opacity:1; }
+.boot-line.ok::after { content: ' [  OK  ]'; color:var(--green); }
+.boot-line.fail::after { content: ' [ FAIL ]'; color:var(--red); }
+.boot-line.warn::after { content: ' [ WARN ]'; color:var(--amber-bright); }
 
-        .nav-links a {
-            color: var(--text-white);
-            text-decoration: none;
-            margin-left: 2rem;
-            font-size: 0.9rem;
-            transition: color 0.3s, text-shadow 0.3s;
-        }
+#boot-bar-container {
+  margin-top:1.5rem;
+  display:none;
+}
+#boot-bar-label { font-size:0.75rem; margin-bottom:0.4rem; color:var(--amber-dim); }
+#boot-bar {
+  width:400px;
+  height:12px;
+  border:1px solid var(--border);
+  position:relative;
+}
+#boot-bar-fill {
+  height:100%;
+  background: var(--amber);
+  width:0%;
+  transition:width 0.1s;
+  box-shadow: 0 0 8px var(--amber);
+}
 
-        .nav-links a:hover { 
-            color: var(--accent-pink);
-            text-shadow: 0 0 10px var(--accent-pink);
-        }
+#desktop {
+  display:none;
+  width:100vw;
+  height:100vh;
+  flex-direction:column;
+  position:relative;
+}
 
-        /* --- UPDATED HERO SECTION --- */
-        .hero {
-            padding: 5rem 0;
-            border: 2px dashed rgba(255,255,255,0.2);
-            border-radius: 10px;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(5px);
-            /* Centering the content wrapper */
-            display: flex;
-            justify-content: center;
-        }
+/* Taskbar */
+#taskbar {
+  height:32px;
+  background:rgba(10,8,0,0.95);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 1rem;
+  gap:1.5rem;
+  z-index:100;
+  flex-shrink:0;
+}
 
-        /* New Wrapper to handle Left Text / Right Image */
-        .hero-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 900px;
-            gap: 2rem;
-        }
+.taskbar-logo {
+  font-size:0.75rem;
+  font-weight:700;
+  color:var(--amber-bright);
+  letter-spacing:2px;
+  text-shadow:0 0 10px var(--amber);
+}
 
-        .hero-text {
-            flex: 1;
-            text-align: left; /* Align text to left */
-        }
+.taskbar-btn {
+  font-size:0.7rem;
+  color:var(--amber-dim);
+  cursor:none;
+  padding:2px 8px;
+  border:1px solid transparent;
+  background:transparent;
+  font-family:inherit;
+  transition:all 0.15s;
+}
+.taskbar-btn:hover {
+  color:var(--amber-bright);
+  border-color:var(--border);
+  background:var(--amber-glow);
+}
 
-        .hero-pfp {
-            flex-shrink: 0;
-            width: 200px; /* Size of the circle */
-            height: 200px;
-            border-radius: 50%; /* Makes it a circle */
-            border: 4px solid var(--accent-blurple); /* Theme colored border */
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0, 34, 255, 0.5); /* Glowing effect */
-            background-color: #0018d2;
-        }
+#taskbar-clock {
+  margin-left:auto;
+  font-size:0.72rem;
+  color:var(--amber-dim);
+  font-weight:600;
+  letter-spacing:1px;
+}
 
-        .hero-pfp img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+/* Desktop workspace */
+#workspace {
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse at 15% 85%, rgba(169,129,255,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 15%, rgba(169,129,255,0.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(100,60,200,0.03) 0%, transparent 70%),
+    var(--bg);
+}
 
-        .hero h1 {
-            font-size: 3rem; 
-            margin-bottom: 0.5rem;
-            text-shadow: 4px 4px 0px var(--accent-blurple);
-        }
+/* Desktop icons */
+#desktop-icons {
+  position:absolute;
+  top:20px; left:20px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  z-index:10;
+}
 
-        .hero p {
-            font-size: 1.1rem;
-            color: var(--text-gray);
-            line-height: 1.6;
-        }
-        
-        .hero-tagline {
-            color: var(--accent-pink) !important;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem !important;
-        }
+.dsk-icon {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:5px;
+  cursor:none;
+  width:70px;
+  padding:6px;
+  border:1px solid transparent;
+  border-radius:2px;
+  transition:all 0.15s;
+  user-select:none;
+}
+.dsk-icon:hover {
+  border-color:var(--border);
+  background:var(--amber-glow);
+}
+.dsk-icon-img {
+  font-size:1.6rem;
+  filter:drop-shadow(0 0 6px var(--amber));
+}
+.dsk-icon-label {
+  font-size:0.58rem;
+  color:var(--amber);
+  text-align:center;
+  text-shadow:0 0 6px var(--amber);
+  line-height:1.2;
+  word-break:break-all;
+}
 
-        /* --- STATS GRID --- */
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 3rem;
-        }
-        
-        .icon-box {
-            width: 40px;
-            height: 40px;
-            background: var(--accent-pink);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            box-shadow: 4px 4px 0px white;
-            font-family: 'Space Mono', monospace;
-            font-size: 1.2rem;
-        }
+/* ASCII art welcome */
+#desktop-ascii {
+  position:absolute;
+  right:30px;
+  top:20px;
+  font-size:0.45rem;
+  color:var(--amber-dim);
+  line-height:1.1;
+  user-select:none;
+  opacity:0.4;
+  letter-spacing:0;
+  white-space:pre;
+}
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
+.win {
+  position:absolute;
+  background:rgba(10,8,0,0.97);
+  border:1px solid var(--amber-dim);
+  box-shadow:
+    0 0 0 1px rgba(255,176,0,0.05),
+    0 0 30px rgba(255,176,0,0.08),
+    inset 0 0 60px rgba(0,0,0,0.5);
+  min-width:360px;
+  min-height:200px;
+  display:flex;
+  flex-direction:column;
+  z-index:200;
+  resize:both;
+  overflow:hidden;
+}
 
-        .stat-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-            transition: transform 0.3s, border-color 0.3s;
-            backdrop-filter: blur(5px);
-        }
+.win.active {
+  border-color:var(--amber);
+  box-shadow:
+    0 0 0 1px rgba(255,176,0,0.1),
+    0 0 40px rgba(255,176,0,0.15),
+    inset 0 0 60px rgba(0,0,0,0.5);
+  z-index:300;
+}
 
-        .stat-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--accent-pink);
-        }
+.win-titlebar {
+  height:30px;
+  background:rgba(14,10,24,0.97);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 0 0 10px;
+  cursor:move;
+  user-select:none;
+  flex-shrink:0;
+}
 
-        .stat-number {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            font-size: 3rem;
-            color: var(--accent-pink);
-            margin-bottom: 1rem;
-            display: block;
-            letter-spacing: -2px;
-        }
+.win-title {
+  font-size:0.62rem;
+  color:var(--amber-dim);
+  letter-spacing:1.5px;
+  font-weight:600;
+  flex:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 
-        .stat-label {
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
+.win-btns {
+  display:flex;
+  align-items:stretch;
+  height:100%;
+  margin-left:auto;
+  flex-shrink:0;
+}
 
-        /* --- PROJECTS (QUESTS) --- */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-        }
+.win-btn {
+  width:42px;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:0.7rem;
+  color:var(--amber-dim);
+  cursor:none;
+  border:none;
+  background:transparent;
+  font-family:'IBM Plex Mono',monospace;
+  transition:background 0.15s, color 0.15s;
+  border-left:1px solid transparent;
+}
+.win-btn:hover { background:rgba(169,129,255,0.12); color:var(--amber-bright); }
+.win-btn.close:hover { background:#c42b1c; color:#fff; }
 
-        .project-card {
-            background: var(--card-bg);
-            border: 2px solid rgba(255,255,255,0.1);
-            position: relative;
-            height: 100%;
-            transition: transform 0.3s;
-            backdrop-filter: blur(5px);
-        }
-        
-        .project-card:hover {
-             transform: scale(1.02);
-             border-color: var(--accent-yellow);
-        }
+.win-body {
+  flex:1;
+  overflow:auto;
+  padding:12px;
+  font-size:0.72rem;
+  line-height:1.7;
+  scrollbar-width:thin;
+  scrollbar-color:var(--amber-dim) transparent;
+}
 
-        .project-rank {
-            position: absolute;
-            top: -15px;
-            left: -10px;
-            background: var(--accent-yellow);
-            color: black;
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            padding: 10px 15px;
-            font-size: 0.9rem;
-            z-index: 2;
-            box-shadow: 4px 4px 0px rgba(255,255,255,0.8);
-        }
+#term-win {
+  width: min(820px, 92vw);
+  height: min(540px, 75vh);
+  top:60px;
+  left:100px;
+}
 
-        .project-image {
-            width: 100%;
-            height: 180px;
-            background-color: rgba(0,0,0,0.5);
-            border-bottom: 2px solid rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #555;
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            letter-spacing: -1px;
-        }
-        
-        .project-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+#term-output {
+  flex:1;
+  overflow-y:auto;
+  padding:12px 14px;
+  font-size:0.73rem;
+  line-height:1.65;
+  scrollbar-width:thin;
+  scrollbar-color:var(--amber-dim) transparent;
+}
 
-        .project-content {
-            padding: 2rem;
-        }
+#term-input-row {
+  display:flex;
+  align-items:center;
+  padding:6px 14px 8px;
+  border-top:1px solid var(--border);
+  gap:6px;
+  flex-shrink:0;
+}
 
-        .project-title {
-            color: var(--accent-yellow);
-            margin-bottom: 1rem;
-            font-size: 1.4rem;
-            font-weight: 700;
-        }
+#term-prompt {
+  color:var(--green);
+  font-size:0.73rem;
+  white-space:nowrap;
+  flex-shrink:0;
+}
 
-        .tech-stack {
-            margin-top: 1.5rem;
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-        }
+#term-input {
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:var(--amber-bright);
+  font-family:inherit;
+  font-size:0.73rem;
+  caret-color:var(--amber-bright);
+}
 
-        .tech-tag {
-            background: rgba(255,255,255,0.1);
-            padding: 4px 10px;
-            font-size: 0.75rem;
-            border-radius: 4px;
-            font-weight: bold;
-        }
+/* Terminal text colors */
+.t-dim    { color:var(--amber-dim); }
+.t-bright { color:var(--amber-bright); }
+.t-green  { color:var(--green); }
+.t-red    { color:var(--red); }
+.t-cyan   { color:var(--cyan); }
+.t-white  { color:var(--white); }
+.t-gray   { color:var(--gray); }
+.t-head   { color:var(--amber-bright); font-weight:700; letter-spacing:2px; }
 
-        .project-links {
-            margin-top: 2rem;
-        }
+.cmd-echo { color:var(--amber-dim); }
+.cmd-echo::before { content:'❯ '; color:var(--green); }
 
-        .btn {
-            display: inline-block;
-            background: transparent;
-            border: 2px solid var(--text-white);
-            color: var(--text-white);
-            padding: 0.8rem 1.5rem;
-            text-decoration: none;
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            font-size: 0.8rem;
-            transition: all 0.3s;
-            box-shadow: 3px 3px 0px rgba(255,255,255,0.5);
-        }
+/* Progress bar */
+.prog-bar-wrap { display:inline-flex; align-items:center; gap:8px; }
+.prog-bar {
+  display:inline-block;
+  width:120px; height:9px;
+  border:1px solid var(--amber-dim);
+  vertical-align:middle;
+  position:relative;
+  overflow:hidden;
+}
+.prog-fill {
+  height:100%;
+  background:var(--amber);
+  box-shadow:0 0 5px var(--amber);
+  transition:width 1s ease-out;
+}
+.prog-val { color:var(--amber-bright); min-width:35px; }
 
-        .btn:hover {
-            background: var(--text-white);
-            color: var(--grad-4);
-            box-shadow: 1px 1px 0px rgba(255,255,255,0.5);
-            transform: translate(2px, 2px);
-        }
+/* Grid layout for cards */
+.info-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin:8px 0;
+}
+.info-card {
+  border:1px solid var(--border);
+  padding:8px 10px;
+  background:var(--amber-glow2);
+}
+.info-card-title {
+  font-size:0.6rem;
+  letter-spacing:2px;
+  color:var(--amber-dim);
+  margin-bottom:5px;
+}
 
-        /* --- EXPERIENCE (LORE) --- */
-        .list-item {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            backdrop-filter: blur(5px);
-            transition: transform 0.3s;
-        }
-        
-        .list-item:hover {
-             transform: translateX(10px);
-        }
+/* Project card in terminal */
+.proj-card {
+  border:1px solid var(--border);
+  padding:10px 12px;
+  margin:6px 0;
+  background:var(--amber-glow2);
+  transition:background 0.2s;
+}
+.proj-card:hover { background:var(--amber-glow); }
+.proj-num { color:var(--amber-dim); }
+.proj-name { color:var(--amber-bright); font-weight:700; }
+.proj-tech { color:var(--gray); font-size:0.65rem; }
 
-        .list-item:before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 5px;
-            background: var(--accent-teal);
-        }
+/* Blinking cursor in output */
+@keyframes blink { 50% { opacity:0; } }
+.cur { 
+  display:inline-block;
+  width:7px; height:1em;
+  background:var(--amber);
+  vertical-align:text-bottom;
+  animation:blink 1s step-end infinite;
+}
 
-        .list-info h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.8rem;
-            font-weight: 700;
-        }
-        
-        .list-date {
-            color: var(--accent-teal);
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
+/* Glitch effect on headers */
+@keyframes glitch1 {
+  0%,100% { text-shadow:2px 0 var(--red),  -2px 0 var(--cyan); clip-path:inset(0); }
+  20%      { text-shadow:2px 0 var(--red),  -2px 0 var(--cyan); clip-path:inset(30% 0 40% 0); transform:translate(-2px); }
+  40%      { text-shadow:-2px 0 var(--red),  2px 0 var(--cyan); clip-path:inset(60% 0 10% 0); transform:translate(2px); }
+  60%      { text-shadow:2px 0 var(--red),  -2px 0 var(--cyan); clip-path:inset(0); transform:translate(0); }
+}
 
-        /* --- FOOTER --- */
-        footer {
-            text-align: center;
-            padding: 5rem 0;
-            border-top: 2px solid rgba(255,255,255,0.1);
-            margin-top: 5rem;
-        }
+/* Matrix window */
+#matrix-win {
+  width:420px; height:320px;
+  top:80px; left:200px;
+  display:none;
+}
+#matrix-canvas {
+  width:100%; height:100%;
+  background:black;
+}
 
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            margin-bottom: 3rem;
-        }
+/* Skills window */
+#skills-win {
+  width:400px; height:360px;
+  top:100px; left:500px;
+  display:none;
+}
 
-        .social-icon {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--text-gray);
-            text-decoration: none;
-            transition: color 0.3s, transform 0.3s;
-        }
-        
-        .social-icon:hover { 
-            color: var(--accent-yellow);
-            transform: scale(1.1);
-        }
+/* Neofetch window */
+#neofetch-win {
+  width:520px; height:340px;
+  top:120px; left:140px;
+  display:none;
+}
 
-        /* Responsive Mobile Changes */
-        @media (max-width: 768px) {
-            .hero-content {
-                flex-direction: column-reverse; /* Puts image on top on mobile */
-                text-align: center;
-                gap: 2rem;
-            }
-            .hero-text {
-                text-align: center;
-            }
-            .hero h1 { font-size: 2.2rem; }
-            .nav-links { display: none; } 
-            .list-item { flex-direction: column; align-items: flex-start; gap: 1rem;}
-            section { margin-bottom: 6rem; }
-        }
-    </style>
+/* Boot progress animation */
+@keyframes flicker {
+  0%,100% { opacity:1; }
+  92% { opacity:1; }
+  93% { opacity:0.4; }
+  94% { opacity:1; }
+  97% { opacity:0.7; }
+  98% { opacity:1; }
+}
+
+body { animation: flicker 8s ease-in-out infinite; }
+
+/* ── PFP drop zone ── */
+#pfp-drop {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  min-height:180px;
+  border:2px dashed var(--border);
+  margin:10px;
+  cursor:none;
+  transition:border-color 0.2s, background 0.2s;
+}
+#pfp-drop:hover {
+  border-color:var(--amber);
+  background:var(--amber-glow2);
+}
+#pfp-drop-inner { text-align:center; }
+
+/* neofetch layout with pfp */
+.nf-layout {
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  padding:4px;
+}
+.nf-pfp {
+  flex-shrink:0;
+  width:110px; height:110px;
+  border:2px solid var(--border);
+  object-fit:cover;
+  image-rendering:pixelated;
+  filter:contrast(1.1) brightness(0.95);
+}
+.nf-pfp-placeholder {
+  flex-shrink:0;
+  width:110px; height:110px;
+  border:2px dashed var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:0.55rem;
+  color:var(--amber-dim);
+  text-align:center;
+  cursor:none;
+}
+.nf-pfp-placeholder:hover { border-color:var(--amber); cursor:pointer; }
+.nf-info { flex:1; font-size:0.65rem; line-height:1.7; }
+.nf-user { color:var(--amber-bright); font-weight:700; font-size:0.75rem; }
+.nf-sep  { color:var(--amber-dim); }
+.nf-key  { color:var(--amber); font-weight:600; }
+.nf-val  { color:var(--white); }
+
+/* whoami pfp panel */
+.whoami-layout {
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  margin:6px 0;
+}
+.whoami-pfp {
+  flex-shrink:0;
+  width:80px; height:80px;
+  border:2px solid var(--border);
+  object-fit:cover;
+}
+.whoami-pfp-ph {
+  flex-shrink:0;
+  width:80px; height:80px;
+  border:2px dashed var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.55rem; color:var(--amber-dim); text-align:center;
+  cursor:pointer;
+}
+.whoami-pfp-ph:hover { border-color:var(--amber); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--amber-dim); }
+
+/* Help table */
+.help-table { border-collapse:collapse; width:100%; }
+.help-table td { padding:2px 12px 2px 0; vertical-align:top; }
+.help-table .cmd-col { color:var(--amber-bright); white-space:nowrap; min-width:160px; }
+.help-table .desc-col { color:var(--amber-dim); }
+
+/* ── Google-CLI style output rows ── */
+.cli-row {
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  padding:2px 0;
+  line-height:1.6;
+}
+.cli-row .cli-icon {
+  flex-shrink:0;
+  width:14px;
+  text-align:center;
+  font-size:0.75rem;
+}
+.cli-row .cli-label {
+  flex-shrink:0;
+  min-width:110px;
+  color:var(--amber-dim);
+  font-size:0.68rem;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.cli-row .cli-val {
+  color:var(--white);
+  font-size:0.72rem;
+}
+.cli-section-head {
+  color:var(--amber-bright);
+  font-size:0.68rem;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+  padding-bottom:3px;
+  margin:10px 0 6px;
+}
+.cli-divider {
+  border:none;
+  border-top:1px solid var(--border);
+  margin:8px 0;
+}
+
+/* git log style */
+.git-commit { margin:4px 0; }
+.git-hash   { color:#f1a340; font-weight:700; }
+.git-author { color:var(--cyan); }
+.git-date   { color:var(--amber-dim); font-size:0.65rem; }
+.git-msg    { color:var(--white); padding-left:16px; font-size:0.7rem; }
+.git-branch-tag {
+  background:var(--green); color:#000;
+  font-size:0.6rem; padding:1px 5px; font-weight:700;
+}
+.git-head-tag {
+  background:var(--cyan); color:#000;
+  font-size:0.6rem; padding:1px 5px; font-weight:700;
+}
+
+/* ping animation */
+@keyframes ping-pulse {
+  0%   { opacity:1; }
+  50%  { opacity:0.3; }
+  100% { opacity:1; }
+}
+.ping-line { animation: ping-pulse 0.6s ease-in-out; }
+
+/* Typing cursor in welcome */
+.type-cursor {
+  display:inline-block;
+  width:8px; height:1em;
+  background:var(--amber-bright);
+  vertical-align:text-bottom;
+  animation:blink 0.8s step-end infinite;
+}
+
+/* open command link card */
+.open-card {
+  border:1px solid var(--border);
+  padding:8px 12px;
+  margin:4px 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--amber-glow2);
+}
+.open-card a { color:var(--cyan); text-decoration:none; font-size:0.7rem; }
+.open-card a:hover { text-decoration:underline; }
+
+/* Status bar */
+#statusbar {
+  height:22px;
+  background:rgba(10,8,0,0.97);
+  border-top:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 1rem;
+  gap:0;
+  flex-shrink:0;
+  overflow:hidden;
+}
+.sb-item {
+  font-size:0.58rem;
+  color:var(--amber-dim);
+  letter-spacing:1px;
+  padding:0 14px;
+  border-right:1px solid var(--border);
+  white-space:nowrap;
+  height:100%;
+  display:flex;
+  align-items:center;
+}
+.sb-item:last-child { border-right:none; margin-left:auto; }
+.sb-item span { color:var(--amber); }
+
+/* Live mini spark bars in statusbar */
+.spark {
+  display:inline-flex;
+  align-items:flex-end;
+  gap:1px;
+  height:10px;
+  margin-left:5px;
+  vertical-align:middle;
+}
+.spark-bar {
+  width:3px;
+  background:var(--amber);
+  opacity:0.7;
+  transition:height 0.4s ease;
+}
+
+/* Notification toast */
+#toast {
+  position:fixed;
+  bottom:36px; right:20px;
+  background:rgba(20,16,0,0.97);
+  border:1px solid var(--amber);
+  padding:8px 14px;
+  font-size:0.65rem;
+  color:var(--amber-bright);
+  z-index:9500;
+  opacity:0;
+  transform:translateY(10px);
+  transition:all 0.3s;
+  pointer-events:none;
+  max-width:280px;
+  box-shadow:0 0 20px rgba(255,176,0,0.2);
+}
+#toast.show { opacity:1; transform:translateY(0); }
+#toast .toast-icon { color:var(--green); margin-right:6px; }
+
+@media(max-width:600px) {
+  #term-win { width:98vw; left:1vw; top:40px; height:72vh; }
+  #desktop-ascii { display:none; }
+  .info-grid { grid-template-columns:1fr; }
+  #taskbar { gap:0.5rem; padding:0 0.5rem; }
+  .taskbar-btn { font-size:0.6rem; padding:2px 5px; }
+}
+</style>
 </head>
 <body>
 
-    <div class="container">
-        
-        <nav>
-            <div class="nav-logo">
-                <span style="color:white;">User</span><span style="color:var(--accent-pink);">.check()</span>
-            </div>
-            <div class="nav-links">
-                <a href="#stats">STATS</a>
-                <a href="#quests">QUESTS</a>
-                <a href="#lore">LORE</a>
-                <a href="#contact">CO-OP</a>
-            </div>
-        </nav>
+<div id="cursor"></div>
+<div id="crt"></div>
+<div id="vignette"></div>
+<div id="phosphor"></div>
+<div id="noise"></div>
 
-        <header class="hero">
-            <div class="hero-content">
-                
-                <div class="hero-text">
-                    <p class="hero-tagline">I'AM MID BUT I PREFER BEING LOW LEVEL</p>
-                    <h1>UTHKARSH M</h1>
-                    <p>Computer Science Student | Embedded Engineering | Problem Solver</p>
-                    <br>
-                    <a href="#quests" class="btn" style="background: var(--accent-blurple); border-color: var(--accent-blurple);">START GAME</a>
-                </div>
+<div id="boot-screen">
+  <div id="boot-content"></div>
+  <div id="boot-bar-container">
+    <div id="boot-bar-label">LOADING KERNEL MODULES...</div>
+    <div id="boot-bar"><div id="boot-bar-fill"></div></div>
+  </div>
+</div>
 
-                <div class="hero-pfp">
-                    <img src="mypfp!.jpeg" alt="p">
-                </div>
+<div id="desktop">
+  <div id="taskbar">
+    <span class="taskbar-logo">UTHKARSH_M@DEV</span>
+    <button class="taskbar-btn" onclick="openWin('term-win')">[ TERMINAL ]</button>
+    <button class="taskbar-btn" onclick="runCmd('neofetch')">[ NEOFETCH ]</button>
+    <button class="taskbar-btn" onclick="runCmd('skills --verbose')">[ SKILLS ]</button>
+    <button class="taskbar-btn" onclick="runCmd('matrix')">[ MATRIX ]</button>
+    <span id="taskbar-clock"></span>
+  </div>
 
-            </div>
-        </header>
-        <section id="stats">
-            <div class="section-header">
-                <div class="icon-box">!</div>
-                <h2>MY STATS</h2>
-            </div>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <span class="stat-number">90%</span>
-                    <span class="stat-label">C++</span>
-                </div>
+  <div id="workspace">
+    <div id="desktop-ascii"></div>
 
-                <div class="stat-card">
-                    <span class="stat-number" style="color:var(--accent-yellow)">4</span>
-                    <span class="stat-label">REPOS PUSHED</span>
-                </div>
-
-                <div class="stat-card">
-                    <span class="stat-number" style="color:var(--accent-teal)">32</span>
-                    <span class="stat-label">PROBLEMS SOLVED</span>
-                </div>
-
-                <div class="stat-card">
-                    <span class="stat-number" style="color:var(--accent-blurple)">D+</span>
-                    <span class="stat-label">DSA ONGOING</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="quests">
-            <div class="section-header">
-                <div class="icon-box" style="background: var(--accent-yellow); color:black;">#</div>
-                <h2>MY TOP QUESTS</h2>
-            </div>
-
-            <p style="margin-bottom: 3rem; color: var(--text-gray); font-size: 1.1rem;">I am completing 1 major milestones this year.</p>
-
-            <div class="projects-grid">
-                <div class="project-card">
-                    <div class="project-rank">#1</div>
-                    <div class="project-image">
-                        [IMG_PREVIEW]
-                    </div>
-                    <div class="project-content">
-                        <h3 class="project-title">CLOCK-SYSTEM</h3>
-                        <p>A timer/interrupt based clock, handling multiple events and states</p>
-                        <div class="tech-stack">
-                            <span class="tech-tag">C++</span>
-                            <span class="tech-tag">Timers</span>
-                            <span class="tech-tag">ISR/IRQ</span>
-                        </div>
-                        <div class="project-links">
-                            <a href="https://github.com/lowLevelLucifer/ClockSystem" class="btn">VIEW REPO</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="project-card">
-                    <div class="project-rank">#1</div>
-                    <div class="project-image">
-                        [IMG_PREVIEW]
-                    </div>
-                    <div class="project-content">
-                        <h3 class="project-title">FAKE MCU</h3>
-                        <p>Building a fake MCU memory , understanding busses.</p>
-                        <div class="tech-stack">
-                            <span class="tech-tag">C</span>
-                            <span class="tech-tag">Adressing</span>
-                            <span class="tech-tag">busses/memory</span>
-                        </div>
-                        <div class="project-links">
-                            <a href="https://github.com/lowLevelLucifer/fakeMCU" class="btn">VIEW REPO</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="project-card">
-                    <div class="project-rank">#3</div>
-                    <div class="project-image">
-                        [IMG_PREVIEW]
-                    </div>
-                    <div class="project-content">
-                        <h3 class="project-title">REACTOR ARCHITECTURE</h3>
-                        <p>A reactor architecture which check the readiness of signals and convert into events</p>
-                        <div class="tech-stack">
-                            <span class="tech-tag">C</span>
-                            <span class="tech-tag">Timers</span>
-                            <span class="tech-tag">Architecture</span>
-                        </div>
-                        <div class="project-links">
-                            <a href="https://github.com/lowLevelLucifer/reactor" class="btn">VIEW REPO</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="lore">
-            <div class="section-header">
-                <div class="icon-box" style="background: var(--accent-teal); color:black;">@</div>
-                <h2>MY LORE</h2>
-            </div>
-            
-            <p style="margin-bottom: 3rem; color: var(--text-gray); font-size: 1.1rem;">The realms where I spent the most time:</p>
-
-            <div class="list-item">
-                <div class="list-info">
-                    <h3>DAYANANDA SAGAR ACADEMY OF TECHNOLOGY AND MANAGEMENT</h3>
-                    <p style="color:var(--text-gray);">Bachelor of Technology in CSE</p>
-                    <p style="margin-top:0.5rem">Relevant Coursework: OS, DBMS, Networks.</p>
-                </div>
-                <div class="list-right">
-                    <span style="font-family:'Space Mono', monospace; font-weight:700; margin-right: 1rem; font-size: 0.9rem;">CGPA: 8.1</span>
-                    <span class="list-date">2023 - 2027</span>
-                </div>
-            </div>
-
-            <div class="list-item" style="border-left: 5px solid var(--accent-pink);">
-                <style>.list-item[style*="pink"]:before { display:none; }</style> 
-                <div class="list-info">
-                    <h3>TECH COMPANY INC.</h3>
-                    <p style="color:var(--text-gray);">Software Development Intern</p>
-                     <p style="margin-top:0.5rem">Developed REST APIs and optimized database queries, improving load times by 20%.</p>
-                </div>
-                <div class="list-right">
-                    <span class="list-date">Summer 2024</span>
-                </div>
-            </div>
-
-        </section>
-
-        <footer id="contact">
-            <h2 style="margin-bottom: 3rem; font-size: 1.8rem;">READY TO SQUAD UP?</h2>
-            
-            <div class="social-links">
-                <a href="https://github.com/lowLevelLucifer" class="social-icon">GITHUB</a>
-                <a href="#" class="social-icon">LINKEDIN</a>
-                <a href="mailto:uthkarsh75@gmail.com" class="social-icon">EMAIL</a>
-            </div>
-
-            <p style="font-size: 0.9rem; color: #000000; line-height: 2;">
-                GAME OVER.<br>
-                INSERT COIN TO CONTINUE.
-            </p>
-        </footer>
-
+    
+    <div id="desktop-icons">
+      <div class="dsk-icon" ondblclick="runCmd('ls projects')">
+        <div class="dsk-icon-img">📁</div>
+        <div class="dsk-icon-label">projects/</div>
+      </div>
+      <div class="dsk-icon" ondblclick="runCmd('cat about.txt')">
+        <div class="dsk-icon-img">📄</div>
+        <div class="dsk-icon-label">about.txt</div>
+      </div>
+      <div class="dsk-icon" ondblclick="runCmd('skills --verbose')">
+        <div class="dsk-icon-img">⚙️</div>
+        <div class="dsk-icon-label">skills.cfg</div>
+      </div>
+      <div class="dsk-icon" ondblclick="runCmd('contact')">
+        <div class="dsk-icon-img">📡</div>
+        <div class="dsk-icon-label">contact.sh</div>
+      </div>
+      <div class="dsk-icon" ondblclick="runCmd('matrix')">
+        <div class="dsk-icon-img">👾</div>
+        <div class="dsk-icon-label">matrix.exe</div>
+      </div>
     </div>
 
+    
+    <div class="win active" id="term-win">
+      <div class="win-titlebar" id="term-win-bar">
+        <div class="win-title">UTHKARSH_M :: BASH 5.2.0 :: LOW_LEVEL_SHELL</div>
+        <div class="win-btns">
+          <div class="win-btn min" onclick="minWin('term-win')">&#x2013;</div>
+          <div class="win-btn max" onclick="maxWin('term-win')">&#x25A1;</div>
+          <div class="win-btn close" onclick="closeWin('term-win')">&#x2715;</div>
+        </div>
+      </div>
+      <div id="term-output"></div>
+      <div id="term-input-row">
+        <span id="term-prompt">uthkarsh@dev:~$</span>
+        <input id="term-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" autofocus>
+      </div>
+    </div>
+
+    
+    <div class="win" id="matrix-win">
+      <div class="win-titlebar" id="matrix-win-bar">
+        <div class="win-title">MATRIX :: CIPHER RAIN</div>
+        <div class="win-btns">
+          <div class="win-btn min" onclick="minWin('matrix-win')">&#x2013;</div>
+          <div class="win-btn max" onclick="maxWin('matrix-win')">&#x25A1;</div>
+          <div class="win-btn close" onclick="closeWin('matrix-win')">&#x2715;</div>
+        </div>
+      </div>
+      <canvas id="matrix-canvas"></canvas>
+    </div>
+
+    
+    <div class="win" id="skills-win">
+      <div class="win-titlebar" id="skills-win-bar">
+        <div class="win-title">SKILLS :: SYSTEM PROFILE</div>
+        <div class="win-btns">
+          <div class="win-btn min" onclick="minWin('skills-win')">&#x2013;</div>
+          <div class="win-btn max" onclick="maxWin('skills-win')">&#x25A1;</div>
+          <div class="win-btn close" onclick="closeWin('skills-win')">&#x2715;</div>
+        </div>
+      </div>
+      <div class="win-body" id="skills-body"></div>
+    </div>
+
+    
+    <div class="win" id="neofetch-win">
+      <div class="win-titlebar" id="neofetch-win-bar">
+        <div class="win-title">NEOFETCH :: SYSTEM INFO</div>
+        <div class="win-btns">
+          <div class="win-btn min" onclick="minWin('neofetch-win')">&#x2013;</div>
+          <div class="win-btn max" onclick="maxWin('neofetch-win')">&#x25A1;</div>
+          <div class="win-btn close" onclick="closeWin('neofetch-win')">&#x2715;</div>
+        </div>
+      </div>
+      <div class="win-body" id="neofetch-body">
+        <div id="pfp-drop" style="display:none"></div>
+        <div id="neofetch-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="statusbar">
+    <div class="sb-item">OS: <span>DEVOS 6.6.0-LTS</span></div>
+    <div class="sb-item">KERNEL: <span>5.15.0-lowlevel</span></div>
+    <div class="sb-item">CPU: <span id="sb-cpu">12%</span><span class="spark" id="cpu-spark"></span></div>
+    <div class="sb-item">MEM: <span id="sb-mem">1.2GB / 16GB</span></div>
+    <div class="sb-item">GIT: <span style="color:var(--white)">main ✓</span></div>
+    <div class="sb-item">TYPE <span>help</span> FOR COMMANDS</div>
+  </div>
+  <div id="toast"><span class="toast-icon">✓</span><span id="toast-msg"></span></div>
+</div>
+
+<script>
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+document.addEventListener('mousedown', () => cur.classList.add('clicking'));
+document.addEventListener('mouseup',   () => cur.classList.remove('clicking'));
+
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  const icon = t.querySelector('.toast-icon');
+  document.getElementById('toast-msg').textContent = msg;
+  icon.textContent = isErr ? '✗ ' : '✓ ';
+  icon.style.color = isErr ? 'var(--red)' : 'var(--green)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+const PORTFOLIO_PFP = "";
+
+function pfpImg(cls) {
+  if (PORTFOLIO_PFP) return `<img src="${PORTFOLIO_PFP}" class="${cls}" alt="pfp">`;
+  const isNf = cls === 'nf-pfp';
+  return `<div class="${isNf ? 'nf-pfp-placeholder' : 'whoami-pfp-ph'}">${isNf ? 'NO PFP<br>SET' : 'NO<br>PFP'}</div>`;
+}
+function updateClock() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('taskbar-clock').textContent =
+    `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}  ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+const sparkEl = document.getElementById('cpu-spark');
+const sparkVals = [12,15,10,18,14,22,11,9,17,20];
+sparkVals.forEach(v => {
+  const b = document.createElement('div');
+  b.className = 'spark-bar';
+  b.style.height = Math.max(2, Math.round(v / 3)) + 'px';
+  sparkEl.appendChild(b);
+});
+
+setInterval(() => {
+  const cpu = Math.floor(8 + Math.random() * 28);
+  document.getElementById('sb-cpu').textContent = cpu + '%';
+  sparkVals.shift(); sparkVals.push(cpu);
+  const bars = sparkEl.querySelectorAll('.spark-bar');
+  sparkVals.forEach((v,i) => {
+    bars[i].style.height = Math.max(2, Math.round(v / 3)) + 'px';
+    bars[i].style.background = v > 25 ? 'var(--red)' : v > 18 ? 'var(--amber-bright)' : 'var(--amber)';
+  });
+  const mb = (1150 + Math.random()*200).toFixed(0);
+  document.getElementById('sb-mem').textContent = `${mb}MB / 16GB`;
+}, 1200);
+
+const bootLines = [
+  { text: 'DEVBIOS v2.25  (C) 2025 LOW-LEVEL-SYSTEMS INC.', delay: 0 },
+  { text: 'CPU: ARM Cortex-A72 @ 1.5GHz  [4 CORES DETECTED]', delay: 50 },
+  { text: 'RAM: 16384MB DDR4-3200  [OK]', delay: 100, cls:'ok' },
+  { text: 'NVME0: /dev/nvme0n1  512GB  [PRESENT]', delay: 150, cls:'ok' },
+  { text: '', delay: 190 },
+  { text: 'Loading KERNEL 5.15.0-lowlevel...', delay: 220 },
+  { text: 'Mounting root filesystem                ', delay: 290,  cls:'ok' },
+  { text: 'Initializing interrupt controllers      ', delay: 360, cls:'ok' },
+  { text: 'Loading ISR/IRQ handler table           ', delay: 430, cls:'ok' },
+  { text: 'Attaching reactor event loop            ', delay: 500, cls:'ok' },
+  { text: 'Loading DSA module (incomplete)         ', delay: 560, cls:'warn' },
+  { text: 'POSIX.1-2017 compliance check           ', delay: 620, cls:'ok' },
+  { text: '', delay: 660 },
+  { text: 'Starting UTHKARSH_M portfolio daemon...', delay: 700 },
+];
+
+const bootContent = document.getElementById('boot-content');
+
+async function runBoot() {
+  for (const line of bootLines) {
+    await sleep(line.delay - (bootLines[0].delay));
+    const el = document.createElement('div');
+    el.className = 'boot-line visible' + (line.cls ? ' ' + line.cls : '');
+    el.textContent = line.text;
+    bootContent.appendChild(el);
+  }
+
+  const barCont = document.getElementById('boot-bar-container');
+  barCont.style.display = 'block';
+  const fill = document.getElementById('boot-bar-fill');
+  for (let i=0; i<=100; i+=5) {
+    fill.style.width = i + '%';
+    await sleep(8);
+  }
+  await sleep(100);
+
+  document.getElementById('boot-screen').style.opacity = '0';
+  document.getElementById('boot-screen').style.transition = 'opacity 0.25s';
+  await sleep(260);
+  document.getElementById('boot-screen').style.display = 'none';
+
+  const desktop = document.getElementById('desktop');
+  desktop.style.display = 'flex';
+
+  renderAscii();
+  initTerminal();
+  makeDraggable('term-win', 'term-win-bar');
+  makeDraggable('matrix-win', 'matrix-win-bar');
+  makeDraggable('skills-win', 'skills-win-bar');
+  makeDraggable('neofetch-win', 'neofetch-win-bar');
+
+  setTimeout(async () => {
+    await printWelcome();
+    focusTerm();
+  }, 200);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+runBoot();
+
+function renderAscii() {
+  document.getElementById('desktop-ascii').textContent =
+`██╗      ██████╗ ██╗    ██╗    ██╗     ███████╗██╗   ██╗███████╗██╗
+██║     ██╔═══██╗██║    ██║    ██║     ██╔════╝██║   ██║██╔════╝██║
+██║     ██║   ██║██║ █╗ ██║    ██║     █████╗  ██║   ██║█████╗  ██║
+██║     ██║   ██║██║███╗██║    ██║     ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║
+███████╗╚██████╔╝╚███╔███╔╝    ███████╗███████╗ ╚████╔╝ ███████╗███████╗
+╚══════╝ ╚═════╝  ╚══╝╚══╝     ╚══════╝╚══════╝  ╚═══╝  ╚══════╝╚══════╝`;
+}
+
+const output = document.getElementById('term-output');
+const input  = document.getElementById('term-input');
+let cmdHistory = [], histIdx = -1;
+
+function focusTerm() { input.focus(); }
+document.getElementById('term-win').addEventListener('click', focusTerm);
+
+function print(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  output.appendChild(d);
+  output.scrollTop = output.scrollHeight;
+}
+
+async function printWelcome() {
+  print(`<pre style="color:var(--amber-bright);font-size:0.55rem;line-height:1.05;letter-spacing:0">
+ ██╗   ██╗████████╗██╗  ██╗██╗  ██╗ █████╗ ██████╗ ███████╗██╗  ██╗
+ ██║   ██║╚══██╔══╝██║  ██║██║ ██╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║
+ ██║   ██║   ██║   ███████║█████╔╝ ███████║██████╔╝███████╗███████║
+ ██║   ██║   ██║   ██╔══██║██╔═██╗ ██╔══██║██╔══██╗╚════██║██╔══██║
+ ╚██████╔╝   ██║   ██║  ██║██║  ██╗██║  ██║██║  ██║███████║██║  ██║
+  ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝</pre>`);
+
+  const lines = [
+    [`<span class="t-dim">┌─────────────────────────────────────────────────────────────┐</span>`],
+    [`<span class="t-dim">│  </span><span class="t-bright">UTHKARSH M</span><span class="t-dim">  ·  </span><span class="t-cyan">Low-Level / Embedded Engineer</span><span class="t-dim">               │</span>`],
+    [`<span class="t-dim">│  2nd Year CSE · DSATM Bengaluru · CGPA 8.1                  │</span>`],
+    [`<span class="t-dim">│  </span><span class="t-green">◉ ONLINE</span><span class="t-dim"> · Open to internships · GitHub: lowLevelLucifer  │</span>`],
+    [`<span class="t-dim">└─────────────────────────────────────────────────────────────┘</span>`],
+  ];
+
+  for (const [html] of lines) {
+    await sleep(60);
+    print(html);
+  }
+  await sleep(80);
+  print(`<span class="t-dim">  Type </span><span class="t-green">help</span><span class="t-dim"> to see all commands  ·  </span><span class="t-dim">Use </span><span class="t-bright">↑ ↓</span><span class="t-dim"> for history  ·  </span><span class="t-dim">Tab to autocomplete</span>`);
+  print('');
+}
+
+function initTerminal() {
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const cmd = input.value.trim();
+      if (cmd) {
+        cmdHistory.unshift(cmd);
+        histIdx = -1;
+        print(`<span class="cmd-echo">${escHtml(cmd)}</span>`);
+        handleCmd(cmd);
+      }
+      input.value = '';
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (histIdx < cmdHistory.length - 1) histIdx++;
+      input.value = cmdHistory[histIdx] || '';
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (histIdx > 0) histIdx--;
+      else { histIdx = -1; input.value = ''; return; }
+      input.value = cmdHistory[histIdx] || '';
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      autocomplete(input.value);
+    }
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function runCmd(cmd) {
+  openWin('term-win');
+  input.value = cmd;
+  print(`<span class="cmd-echo">${escHtml(cmd)}</span>`);
+  handleCmd(cmd);
+  input.value = '';
+  focusTerm();
+}
+
+const CMDS = ['help','whoami','ls','cat','skills','neofetch','matrix','uptime','contact','clear','uname','ps','history','git','ping','open','make','vim','man','exit'];
+
+function autocomplete(val) {
+  if (!val) return;
+  const match = CMDS.find(c => c.startsWith(val));
+  if (match) input.value = match;
+}
+
+function handleCmd(raw) {
+  const parts = raw.trim().split(/\s+/);
+  const cmd = parts[0].toLowerCase();
+  const args = parts.slice(1);
+
+  const handlers = {
+    'help'     : cmdHelp,
+    'whoami'   : cmdWhoami,
+    'ls'       : () => cmdLs(args),
+    'cat'      : () => cmdCat(args),
+    'skills'   : () => cmdSkills(args),
+    'neofetch' : cmdNeofetch,
+    'matrix'   : cmdMatrix,
+    'uptime'   : cmdUptime,
+    'contact'  : cmdContact,
+    'clear'    : cmdClear,
+    'uname'    : cmdUname,
+    'ps'       : cmdPs,
+    'history'  : cmdHistory2,
+    'git'      : () => cmdGit(args),
+    'ping'     : () => cmdPing(args),
+    'open'     : () => cmdOpen(args),
+    'exit'     : () => print(`<span class="t-dim">You can't escape. This is the only shell that matters.</span>`),
+    'sudo'     : () => {
+      if (args.join(' ').includes('rm')) {
+        print(`<span class="t-red">[sudo] Executing rm -rf /...</span>`);
+        setTimeout(()=>print(`<span class="t-red">jk lol. Permission denied. Nice try.</span>`),800);
+      } else {
+        print(`<span class="t-red">[SUDO] uthkarsh is not in the sudoers file. This incident will be reported.</span>`);
+      }
+    },
+    'rm'       : () => print(`<span class="t-red">rm: refusing to delete the universe. Please reconsider.</span>`),
+    'hack'     : () => { print(`<span class="t-green">Initializing hack sequence...</span>`); setTimeout(()=>runCmd('matrix'),400); },
+    'cd'       : () => cmdCd(args),
+    'man'      : () => print(`<span class="t-dim">man: what manual? I learned by reading the datasheet at 2AM.</span>`),
+    'vim'      : () => print(`<span class="t-dim">vim opened. Just kidding — you'd never leave. Try 'cat about.txt' instead.</span>`),
+    'make'     : () => cmdMake(),
+  };
+
+  if (handlers[cmd]) {
+    handlers[cmd]();
+  } else {
+    print(`<span class="t-red">bash: ${escHtml(cmd)}: command not found.</span> <span class="t-dim">Try 'help'.</span>`);
+  }
+  print('');
+}
+
+function cmdHelp() {
+  print(`<div class="cli-section-head">AVAILABLE COMMANDS</div>`);
+  const groups = [
+    { label:'IDENTITY',  cmds:[
+      ['whoami',            'User identity, stats & player card'],
+      ['neofetch',          'Full system info panel'],
+    ]},
+    { label:'FILESYSTEM', cmds:[
+      ['ls',                'List home directory'],
+      ['ls projects',       'Show all projects with details'],
+      ['cat about.txt',     'Read about me'],
+      ['cat resume.txt',    'View resume summary'],
+    ]},
+    { label:'SKILLS',     cmds:[
+      ['skills',            'Quick skills overview'],
+      ['skills --verbose',  'Animated skill bars in floating panel'],
+    ]},
+    { label:'GIT',        cmds:[
+      ['git log',           'Commit history (thematic)'],
+      ['git status',        'Working tree status'],
+      ['git diff',          'What I\'m currently working on'],
+    ]},
+    { label:'NETWORK',    cmds:[
+      ['ping github.com',   'Ping with animated RTT output'],
+      ['open projects',     'Open all project GitHub links'],
+      ['contact',           'Contact info & social links'],
+    ]},
+    { label:'SYSTEM',     cmds:[
+      ['uptime',            'Session uptime & load'],
+      ['uname -a',          'Kernel / OS info'],
+      ['ps',                'Running processes'],
+      ['history',           'Command history'],
+      ['clear',             'Clear terminal'],
+    ]},
+    { label:'EXTRAS',     cmds:[
+      ['matrix',            '👾 Cipher rain easter egg'],
+      ['sudo rm -rf /',     '💀 Try it (don\'t)'],
+    ]},
+  ];
+  groups.forEach(g => {
+    print(`<div style="margin-top:8px;color:var(--amber-dim);font-size:0.6rem;letter-spacing:2px">${g.label}</div>`);
+    const rows = g.cmds.map(([c,d]) =>
+      `<tr><td class="cmd-col t-bright" style="padding-left:10px">${c}</td><td class="desc-col">— ${d}</td></tr>`
+    ).join('');
+    print(`<table class="help-table">${rows}</table>`);
+  });
+}
+
+function cmdWhoami() {
+  print(`<div class="cli-section-head">USER IDENTITY</div>`);
+  const rows = [
+    ['👤','USER',     'uthkarsh  (uid=1000 · gid=1000·devs)'],
+    ['🎓','COLLEGE',  'DSATM, Bengaluru — B.Tech CSE 2023–2027'],
+    ['📊','CGPA',     '8.1 / 10.0'],
+    ['🔧','ROLE',     'Embedded / Low-Level Systems Developer'],
+    ['💬','FOCUS',    'C · C++ · Bare-metal · ISR · Reactor Arch'],
+    ['📦','REPOS',    '4 pushed to GitHub'],
+    ['🧮','DSA',      '32 problems solved · D+ rating (climbing)'],
+    ['🟢','STATUS',   'ONLINE · Open to internships'],
+  ];
+  const rowsHtml = rows.map(([icon,label,val]) =>
+    `<div class="cli-row"><span class="cli-icon">${icon}</span><span class="cli-label">${label}</span><span class="cli-val">${val}</span></div>`
+  ).join('');
+
+  const pfpHtml = pfpImg('whoami-pfp');
+
+  print(`<div class="whoami-layout">${pfpHtml}<div style="flex:1">${rowsHtml}</div></div>`);
+  print('');
+  print(`<div class="cli-section-head">QUICK STATS</div>`);
+  print(`<div class="info-grid">
+    <div class="info-card"><div class="info-card-title">C++ SKILL</div><span class="t-bright">90%</span></div>
+    <div class="info-card"><div class="info-card-title">REPOS</div><span style="color:var(--amber-bright)">4 pushed</span></div>
+    <div class="info-card"><div class="info-card-title">DSA GRIND</div><span style="color:var(--amber-dim)">32 · D+</span></div>
+    <div class="info-card"><div class="info-card-title">BARE-METAL</div><span style="color:var(--cyan)">75%</span></div>
+  </div>`);
+  if (!PORTFOLIO_PFP) print(`<span class="t-dim" style="font-size:0.65rem">  Tip: set </span><span style="color:var(--amber)">PORTFOLIO_PFP</span><span class="t-dim" style="font-size:0.65rem"> in the source to show your photo.</span>`);
+}
+
+function cmdLs(args) {
+  const target = args[0];
+  if (target === 'projects' || target === 'projects/') {
+    print(`<span class="t-dim">drwxr-xr-x  uthkarsh/devs  ~/projects/</span>`);
+    print(``);
+    const projects = [
+      { n:'CLOCK-SYSTEM',         d:'Timer/interrupt-based clock handling multiple events and states.',  tags:['C++','Timers','ISR/IRQ'],   url:'https://github.com/lowLevelLucifer/ClockSystem' },
+      { n:'FAKE-MCU',             d:'Simulated MCU memory + bus architecture, understanding addressing.',tags:['C','Bus','Memory'],         url:'https://github.com/lowLevelLucifer/fakeMCU' },
+      { n:'REACTOR-ARCHITECTURE', d:'Event loop checking signal readiness and dispatching to handlers.',tags:['C','Architecture','Events'], url:'https://github.com/lowLevelLucifer/reactor' },
+    ];
+    projects.forEach((p, i) => {
+      print(`<div class="proj-card">
+        <span class="proj-num">[${i+1}] </span><span class="proj-name">${p.n}</span>
+        <br><span class="t-dim" style="padding-left:20px">${p.d}</span>
+        <br><span class="proj-tech">${p.tags.map(t=>`[${t}]`).join(' ')}</span>
+        <span class="t-dim" style="float:right;font-size:0.65rem">→ <a href="${p.url}" target="_blank" style="color:var(--cyan)">${p.url.replace('https://','')}</a></span>
+      </div>`);
+    });
+  } else {
+    print(`<span class="t-bright">~/</span>`);
+    const entries = [
+      ['drwxr-xr-x','projects/'],
+      ['-rw-r--r--','about.txt'],
+      ['-rw-r--r--','resume.txt'],
+      ['-rwxr-xr-x','contact.sh'],
+      ['-rwxr-xr-x','skills.cfg'],
+      ['drwxr-xr-x','lore/'],
+    ];
+    entries.forEach(([perm,name]) => {
+      const col = name.endsWith('/') ? 'var(--cyan)' : name.endsWith('.sh') ? 'var(--green)' : 'var(--white)';
+      print(`<span class="t-dim">${perm}  uthkarsh  </span><span style="color:${col}">${name}</span>`);
+    });
+  }
+}
+
+function cmdCat(args) {
+  const file = args[0];
+  if (file === 'about.txt') {
+    print(`<span class="t-head">ABOUT :: UTHKARSH M</span>`);
+    print(`<span class="t-dim">────────────────────────────────────────</span>`);
+    print(`<span class="t-white">I'm a 2nd-year Computer Science student at DSATM, Bengaluru,</span>`);
+    print(`<span class="t-white">obsessed with how machines actually work at the metal level.</span>`);
+    print(``);
+    print(`<span class="t-dim">While most devs write code, I write code that talks to</span>`);
+    print(`<span class="t-dim">hardware — timers, interrupts, bus protocols, memory maps.</span>`);
+    print(``);
+    print(`<span class="t-bright">Current focus:</span>`);
+    print(`<span class="t-cyan">  ›</span><span class="t-white"> Embedded C/C++ · Bare-metal programming</span>`);
+    print(`<span class="t-cyan">  ›</span><span class="t-white"> Interrupt-driven architectures (ISR/IRQ)</span>`);
+    print(`<span class="t-cyan">  ›</span><span class="t-white"> MCU internals · Reactor/event-loop patterns</span>`);
+    print(`<span class="t-cyan">  ›</span><span class="t-white"> DSA (ongoing · D+ and climbing)</span>`);
+    print(``);
+    print(`<span class="t-dim">Philosophy: "I am mid but I prefer being low level."</span>`);
+    print(`<span class="t-dim">Translation: I'd rather understand the bottom of the stack</span>`);
+    print(`<span class="t-dim">than be a wizard at the top.</span>`);
+  } else if (file === 'resume.txt') {
+    print(`<span class="t-head">RESUME :: UTHKARSH M</span>`);
+    print(`<span class="t-dim">────────────────────────────────────────</span>`);
+    print(`<span class="t-bright">EDUCATION</span>`);
+    print(`  <span class="t-white">B.Tech CSE  ·  DSATM, Bengaluru  ·  2023–2027</span>`);
+    print(`  <span class="t-dim">CGPA: 8.1  ·  OS · DBMS · Networks</span>`);
+    print(``);
+    print(`<span class="t-bright">PROJECTS</span>`);
+    print(`  <span class="t-cyan">clock-system</span>    <span class="t-dim">Timer/ISR based multi-event clock (C++)</span>`);
+    print(`  <span class="t-cyan">fake-mcu</span>        <span class="t-dim">Simulated MCU memory + addressing (C)</span>`);
+    print(`  <span class="t-cyan">reactor</span>         <span class="t-dim">Signal-readiness event dispatcher (C)</span>`);
+    print(``);
+    print(`<span class="t-bright">CORE SKILLS</span>`);
+    print(`  <span class="t-white">C, C++, Python · Bare-metal · ISR · Bus protocols</span>`);
+    print(`  <span class="t-white">Linux · GCC · Makefiles · Git</span>`);
+    print(``);
+    print(`<span class="t-green">→ Full portfolio: uthkarsh@dev:~$ ls projects</span>`);
+  } else {
+    print(`<span class="t-red">cat: ${escHtml(file||'?')}: No such file or directory</span>`);
+  }
+}
+
+function cmdSkills(args) {
+  const verbose = args.includes('--verbose');
+  if (verbose) {
+    openWin('skills-win');
+    const body = document.getElementById('skills-body');
+    body.innerHTML = '';
+    const skills = [
+      { name:'C++',           val:90, color:'var(--amber-bright)' },
+      { name:'C',             val:80, color:'var(--amber)' },
+      { name:'Bare-Metal',    val:75, color:'var(--cyan)' },
+      { name:'ISR/Timers',    val:70, color:'var(--green)' },
+      { name:'Linux/Bash',    val:65, color:'var(--amber)' },
+      { name:'DSA',           val:35, color:'var(--amber-dim)' },
+      { name:'Git',           val:60, color:'var(--white)' },
+      { name:'Python',        val:50, color:'var(--amber-dim)' },
+    ];
+    skills.forEach(s => {
+      const row = document.createElement('div');
+      row.style.cssText = 'margin-bottom:10px;';
+      row.innerHTML = `
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+          <span style="color:${s.color};font-size:0.7rem;font-weight:600">${s.name}</span>
+          <span style="color:var(--amber-dim);font-size:0.65rem">${s.val}%</span>
+        </div>
+        <div style="height:8px;border:1px solid var(--border);background:transparent;">
+          <div class="prog-fill" data-val="${s.val}" style="width:0%;background:${s.color};box-shadow:0 0 6px ${s.color};"></div>
+        </div>`;
+      body.appendChild(row);
+    });
+    setTimeout(() => {
+      body.querySelectorAll('.prog-fill').forEach(el => {
+        el.style.width = el.dataset.val + '%';
+      });
+    }, 100);
+    print(`<span class="t-green">Opened skills window →</span> <span class="t-dim">See floating panel.</span>`);
+  } else {
+    print(`<span class="t-head">SKILLS</span>`);
+    const sk = [['C++','90%'],['C','80%'],['Bare-Metal','75%'],['ISR/Timers','70%'],['Git','60%'],['DSA','35% (grind ongoing)']];
+    sk.forEach(([n,v]) => print(`  <span class="t-bright">${n.padEnd(14)}</span> <span class="t-dim">${v}</span>`));
+    print(`<span class="t-dim">  Use 'skills --verbose' for detailed view.</span>`);
+  }
+}
+
+function renderNeofetchContent() {
+  document.getElementById('neofetch-content').innerHTML = `
+  <div class="nf-layout">
+    ${pfpImg('nf-pfp')}
+    <div class="nf-info">
+      <span class="nf-user">uthkarsh</span><span class="nf-sep">@</span><span class="nf-user">devbox</span>
+      <div style="border-bottom:1px solid var(--border);margin:3px 0 6px"></div>
+      <div><span class="nf-key">OS</span>      <span class="nf-sep">·</span> <span class="nf-val">DEVOS 6.6.0-LTS x86_64</span></div>
+      <div><span class="nf-key">Host</span>    <span class="nf-sep">·</span> <span class="nf-val">DSATM :: CSE-LAB-07</span></div>
+      <div><span class="nf-key">Kernel</span>  <span class="nf-sep">·</span> <span class="nf-val">5.15.0-lowlevel</span></div>
+      <div><span class="nf-key">Shell</span>   <span class="nf-sep">·</span> <span class="nf-val">bash 5.2.0</span></div>
+      <div><span class="nf-key">CPU</span>     <span class="nf-sep">·</span> <span class="nf-val">ARM Cortex-A72 @ 1.5GHz</span></div>
+      <div><span class="nf-key">RAM</span>     <span class="nf-sep">·</span> <span class="nf-val">~1.2GB / 16GB</span></div>
+      <div><span class="nf-key">Repos</span>   <span class="nf-sep">·</span> <span class="nf-val">4 pushed</span></div>
+      <div><span class="nf-key">DSA</span>     <span class="nf-sep">·</span> <span class="nf-val">32 solved (D+)</span></div>
+      <div><span class="nf-key">CGPA</span>    <span class="nf-sep">·</span> <span class="nf-val">8.1 / 10</span></div>
+      <div style="margin-top:8px">
+        <span style="background:var(--amber);color:#000;padding:1px 7px;font-size:0.6rem"> C </span>
+        <span style="background:var(--amber-bright);color:#000;padding:1px 7px;font-size:0.6rem"> C++ </span>
+        <span style="background:var(--white);color:#000;padding:1px 7px;font-size:0.6rem"> ISR </span>
+        <span style="background:var(--gray);color:#fff;padding:1px 7px;font-size:0.6rem"> BUS </span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function cmdNeofetch() {
+  openWin('neofetch-win');
+  document.getElementById('pfp-drop').style.display = 'none';
+  document.getElementById('neofetch-content').style.display = 'block';
+  renderNeofetchContent();
+  print(`<span style="color:var(--green)">Opened neofetch →</span>`);
+}
+
+function cmdMatrix() {
+  openWin('matrix-win');
+  print(`<span class="t-green">Initializing cipher rain...</span> <span class="t-dim">Close window to stop.</span>`);
+  startMatrix();
+}
+
+let matrixInterval = null;
+function startMatrix() {
+  const canvas = document.getElementById('matrix-canvas');
+  const win = document.getElementById('matrix-win');
+  canvas.width  = win.clientWidth;
+  canvas.height = win.clientHeight - 26;
+  const ctx = canvas.getContext('2d');
+  const cols = Math.floor(canvas.width / 14);
+  const drops = Array(cols).fill(1);
+  const chars = '01';
+
+  if (matrixInterval) clearInterval(matrixInterval);
+  matrixInterval = setInterval(() => {
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#A981FF';
+    ctx.font = '12px IBM Plex Mono';
+    drops.forEach((y, i) => {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillStyle = Math.random() > 0.95 ? '#c9a8ff' : '#A981FF';
+      ctx.fillText(ch, i * 14, y * 14);
+      if (y * 14 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }, 50);
+}
+
+function cmdUptime() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+  print(`<span class="t-bright">System time:</span> <span class="t-cyan">${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</span>`);
+  print(`<span class="t-bright">Session uptime:</span> <span class="t-cyan">${Math.floor(Math.random()*4)+1} days, ${Math.floor(Math.random()*23)+1} hours (just kidding — this is a portfolio)</span>`);
+  print(`<span class="t-bright">Load avg:</span> <span class="t-dim">0.82  0.74  0.68</span>`);
+}
+
+function cmdContact() {
+  print(`<span class="t-head">CONTACT :: SQUAD UP</span>`);
+  print(`<span class="t-dim">────────────────────────────────────────</span>`);
+  print(`  <span class="t-bright">GitHub  </span>  <a href="https://github.com/lowLevelLucifer" target="_blank" style="color:var(--cyan)">github.com/lowLevelLucifer</a>`);
+  print(`  <span class="t-bright">Email   </span>  <a href="mailto:uthkarsh75@gmail.com" style="color:var(--cyan)">uthkarsh75@gmail.com</a>`);
+  print(`  <span class="t-bright">LinkedIn</span>  <span class="t-dim">[add your LinkedIn]</span>`);
+  print(``);
+  print(`<span class="t-dim">  Response SLA: &lt;48h  |  Preferred: GitHub Issues 😄</span>`);
+}
+
+function cmdClear() {
+  output.innerHTML = '';
+}
+
+function cmdUname(args) {
+  print(`<span class="t-white">DEVOS 6.6.0-lowlevel #1 SMP PREEMPT_RT Thu Jan 1 00:00:00 UTC 2025 armv8 ARM Cortex-A72 GNU/Linux</span>`);
+}
+
+function cmdPs() {
+  const procs = [
+    ['1',   'init',           '00:00:01'],
+    ['42',  'kernel-events',  '00:02:14'],
+    ['101', 'isr-handler',    '00:00:03'],
+    ['205', 'timer0-daemon',  '00:01:55'],
+    ['300', 'reactor-loop',   '00:04:32'],
+    ['512', 'portfolio.sh',   '00:00:00'],
+    ['999', 'dsa-grind',      '00:99:99'],
+  ];
+  print(`<span class="t-dim">  PID  COMMAND             TIME</span>`);
+  procs.forEach(([pid,cmd,time]) => {
+    print(`  <span class="t-bright">${pid.padStart(4,' ')}</span>  <span class="t-white">${cmd.padEnd(18,' ')}</span> <span class="t-dim">${time}</span>`);
+  });
+}
+
+function cmdHistory2() {
+  if (!cmdHistory.length) { print(`<span class="t-dim">No history yet.</span>`); return; }
+  [...cmdHistory].reverse().forEach((c,i) => {
+    print(`  <span class="t-dim">${String(i+1).padStart(3,' ')}</span>  <span class="t-white">${escHtml(c)}</span>`);
+  });
+}
+
+function cmdCd(args) {
+  const d = args[0];
+  if (!d || d === '~') {
+    print(`<span class="t-dim">uthkarsh@dev:~$</span>`);
+  } else if (d === 'projects' || d === 'projects/') {
+    print(`<span class="t-dim">uthkarsh@dev:~/projects$  (use 'ls projects' to list)</span>`);
+  } else {
+    print(`<span class="t-red">cd: ${escHtml(d)}: No such directory</span>`);
+  }
+}
+
+function cmdGit(args) {
+  const sub = args[0];
+  if (sub === 'log') {
+    print(`<div class="cli-section-head">GIT LOG  ·  branch: main</div>`);
+    const commits = [
+      { hash:'f3a91bc', msg:'feat: add reactor signal dispatch loop',         author:'uthkarsh', date:'2 days ago',   tags:['HEAD','main'] },
+      { hash:'b2d40e1', msg:'fix: timer0 overflow on 16-bit counter wrap',    author:'uthkarsh', date:'5 days ago',   tags:[] },
+      { hash:'9e1c33f', msg:'feat: implement fakeMCU memory bus addressing',  author:'uthkarsh', date:'1 week ago',   tags:[] },
+      { hash:'77ad502', msg:'chore: add Makefile with debug/release targets', author:'uthkarsh', date:'2 weeks ago',  tags:[] },
+      { hash:'551faad', msg:'feat: ISR handler table + IRQ priority logic',   author:'uthkarsh', date:'3 weeks ago',  tags:[] },
+      { hash:'2b3e998', msg:'init: bare-metal clock system skeleton (C++)',   author:'uthkarsh', date:'1 month ago',  tags:[] },
+    ];
+    commits.forEach(c => {
+      const tags = c.tags.map(t =>
+        t==='HEAD' ? `<span class="git-head-tag">HEAD</span> ` :
+                     `<span class="git-branch-tag">${t}</span> `
+      ).join('');
+      print(`<div class="git-commit">
+        <span class="git-hash">● ${c.hash}</span>  ${tags}<span class="git-date">${c.date}</span>  <span class="git-author">&lt;${c.author}&gt;</span>
+        <div class="git-msg">${c.msg}</div>
+      </div>`);
+    });
+    print(`<span class="t-dim" style="font-size:0.65rem;padding-left:4px">— 6 commits · 3 repos · github.com/lowLevelLucifer</span>`);
+
+  } else if (sub === 'status') {
+    print(`<div class="cli-section-head">GIT STATUS</div>`);
+    print(`<span class="t-dim">On branch </span><span class="t-green">main</span>`);
+    print(`<span class="t-dim">Your branch is up to date with 'origin/main'.</span>`);
+    print('');
+    print(`<span class="t-bright">Changes not staged for commit:</span>`);
+    print(`  <span class="t-red">modified:   src/reactor.c</span>  <span class="t-dim">— adding epoll backend</span>`);
+    print(`  <span class="t-red">modified:   README.md</span>       <span class="t-dim">— updating architecture diagram</span>`);
+    print('');
+    print(`<span class="t-bright">Untracked files:</span>`);
+    print(`  <span class="t-red">src/timer_hal.h</span>  <span class="t-dim">— new HAL abstraction layer</span>`);
+
+  } else if (sub === 'diff') {
+    print(`<div class="cli-section-head">GIT DIFF  ·  WHAT I'M BUILDING NOW</div>`);
+    print(`<span class="t-dim">diff --git a/src/reactor.c b/src/reactor.c</span>`);
+    print(`<span class="t-dim">--- a/src/reactor.c</span>`);
+    print(`<span class="t-dim">+++ b/src/reactor.c</span>`);
+    print(`<span class="t-dim">@@ -42,6 +42,14 @@ void reactor_run(reactor_t *r) {</span>`);
+    print(`<span class="t-red">-    select(maxfd+1, &read_fds, NULL, NULL, &tv);</span>`);
+    print(`<span class="t-green">+    /* switching to epoll for O(1) fd monitoring */</span>`);
+    print(`<span class="t-green">+    epoll_event ev; ev.events = EPOLLIN;</span>`);
+    print(`<span class="t-green">+    epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev);</span>`);
+    print(`<span class="t-green">+    int n = epoll_wait(epfd, events, MAX_EVENTS, timeout_ms);</span>`);
+
+  } else {
+    print(`<span class="t-dim">usage: git &lt;log|status|diff&gt;</span>`);
+  }
+}
+
+async function cmdPing(args) {
+  const host = args[0] || 'github.com';
+  print(`<span class="t-dim">PING ${escHtml(host)} (140.82.114.4): 56 bytes of data</span>`);
+  const rtts = [12.4, 13.1, 11.9, 14.2, 12.8];
+  for (let i = 0; i < 5; i++) {
+    await sleep(420);
+    const rtt = (rtts[i] + Math.random()*2 - 1).toFixed(2);
+    const col = rtt < 13 ? 'var(--green)' : rtt < 14 ? 'var(--amber-bright)' : 'var(--amber)';
+    const line = document.createElement('div');
+    line.className = 'ping-line';
+    line.innerHTML = `<span class="t-dim">64 bytes from ${escHtml(host)}: icmp_seq=${i+1} ttl=58 time=</span><span style="color:${col};font-weight:700">${rtt} ms</span>`;
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+  }
+  await sleep(300);
+  print(`<span class="t-dim">--- ${escHtml(host)} ping statistics ---</span>`);
+  print(`<span class="t-white">5 packets transmitted, 5 received, </span><span class="t-green">0% packet loss</span><span class="t-dim">, avg rtt = 12.88ms</span>`);
+}
+
+function cmdOpen(args) {
+  const target = args[0];
+  const links = {
+    'projects' : [
+      { name:'ClockSystem',  url:'https://github.com/lowLevelLucifer/ClockSystem' },
+      { name:'fakeMCU',      url:'https://github.com/lowLevelLucifer/fakeMCU' },
+      { name:'reactor',      url:'https://github.com/lowLevelLucifer/reactor' },
+    ],
+    'github' : [{ name:'GitHub Profile', url:'https://github.com/lowLevelLucifer' }],
+    'email'  : [{ name:'Email', url:'mailto:uthkarsh75@gmail.com' }],
+  };
+
+  const items = links[target] || links['projects'];
+  print(`<div class="cli-section-head">OPEN :: ${(target||'projects').toUpperCase()}</div>`);
+  items.forEach(item => {
+    print(`<div class="open-card">
+      <span class="t-bright" style="font-size:0.7rem">${item.name}</span>
+      <a href="${item.url}" target="_blank">↗ ${item.url.replace('https://','')}</a>
+    </div>`);
+  });
+  showToast(`Opening ${items.length} link(s)...`);
+  setTimeout(() => items.forEach(i => window.open(i.url, '_blank')), 600);
+}
+
+function cmdMake() {
+  print(`<span class="t-dim">make: entering directory '~/projects/reactor'</span>`);
+  const steps = [
+    `<span class="t-dim">gcc -Wall -O2 -c src/reactor.c -o build/reactor.o</span>`,
+    `<span class="t-dim">gcc -Wall -O2 -c src/event_loop.c -o build/event_loop.o</span>`,
+    `<span class="t-green">gcc build/reactor.o build/event_loop.o -o bin/reactor</span>`,
+    `<span class="t-bright">Build succeeded.</span> <span class="t-dim">Output: bin/reactor  [42KB stripped]</span>`,
+  ];
+  steps.forEach((s,i) => setTimeout(()=>print(s), i*180));
+  setTimeout(()=>showToast('Build succeeded ✓'), steps.length*180);
+}
+function openWin(id) {
+  const w = document.getElementById(id);
+  w.style.display = 'flex';
+  w.dataset.minimized = '0';
+  const body = w.querySelector('.win-body, #term-output, canvas');
+  const inputRow = w.querySelector('#term-input-row');
+  if (body) body.style.display = '';
+  if (inputRow) inputRow.style.display = '';
+  activateWin(id);
+}
+
+function closeWin(id) {
+  document.getElementById(id).style.display = 'none';
+  if (id === 'matrix-win' && matrixInterval) {
+    clearInterval(matrixInterval);
+    matrixInterval = null;
+  }
+}
+
+function minWin(id) {
+  const w = document.getElementById(id);
+  if (w.dataset.minimized === '1') {
+    w.dataset.minimized = '0';
+    const els = w.querySelectorAll('.win-body, #term-output, #term-input-row, canvas');
+    els.forEach(el => el.style.display = '');
+    w.style.resize = 'both';
+  } else {
+    w.dataset.minimized = '1';
+    const els = w.querySelectorAll('.win-body, #term-output, #term-input-row, canvas');
+    els.forEach(el => el.style.display = 'none');
+    w.style.resize = 'none';
+  }
+  activateWin(id);
+}
+
+function activateWin(id) {
+  document.querySelectorAll('.win').forEach(w => w.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function maxWin(id) {
+  const w = document.getElementById(id);
+  if (w.dataset.maximized === '1') {
+    w.style.cssText = w.dataset.prev || '';
+    w.dataset.maximized = '0';
+  } else {
+    w.dataset.prev = w.style.cssText;
+    w.style.cssText = 'top:0;left:100px;width:calc(100vw - 100px);height:calc(100vh - 52px);display:flex;';
+    w.dataset.maximized = '1';
+  }
+}
+
+function makeDraggable(winId, barId) {
+  const win = document.getElementById(winId);
+  const bar = document.getElementById(barId);
+  let ox=0, oy=0, ix=0, iy=0;
+
+  bar.addEventListener('mousedown', e => {
+    e.preventDefault();
+    activateWin(winId);
+    ix = e.clientX; iy = e.clientY;
+    ox = win.offsetLeft; oy = win.offsetTop;
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', () => document.removeEventListener('mousemove', drag));
+  });
+
+  function drag(e) {
+    const dx = e.clientX - ix, dy = e.clientY - iy;
+    win.style.left = Math.max(0, ox + dx) + 'px';
+    win.style.top  = Math.max(32, oy + dy) + 'px';
+  }
+}
+</script>
 </body>
 </html>
